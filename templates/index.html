@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GWA Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            font-family: 'Montserrat', Arial, sans-serif;
+            color: #f5f5f7;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #e5c07b;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            margin-top: 40px;
+            font-size: 2.5rem;
+            text-align: center;
+        }
+
+        h2, h3 {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            gap: 16px;
+        }
+
+        /* Hide the default file input */
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Custom file upload button */
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: 1.5px solid #e5c07b;
+            background: linear-gradient(90deg, #232526 0%, #2c2f34 100%);
+            color: #e5c07b;
+            font-size: 1.08rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(229,192,123,0.10);
+            transition: background 0.2s, color 0.2s, border 0.2s;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .custom-file-upload:hover, .custom-file-upload:focus {
+            background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
+            color: #232526;
+            border: 1.5px solid #bfa055;
+        }
+
+        /* Show selected file name */
+        #file-chosen {
+            color: #e5c07b;
+            font-size: 1rem;
+            margin-top: 6px;
+            margin-bottom: 0;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+        input[type="submit"], button[type="submit"] {
+            background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
+            color: #232526;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(229,192,123,0.15);
+            transition: background 0.2s, color 0.2s;
+        }
+
+        input[type="submit"]:hover, button[type="submit"]:hover {
+            background: linear-gradient(90deg, #bfa055 0%, #e5c07b 100%);
+            color: #232526;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 80%;
+            margin: 30px auto 0 auto;
+            background: rgba(44, 47, 52, 0.98);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+
+        th, td {
+            border-bottom: 1px solid #444;
+            padding: 14px 10px;
+            text-align: center;
+        }
+
+        th {
+            background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
+            color: #232526;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        tr:hover td {
+            background: rgba(229,192,123,0.08);
+            transition: background 0.2s;
+        }
+
+        p, strong {
+            font-size: 1.1rem;
+            color: #f5f5f7;
+            text-align: center;
+        }
+
+        .gwa-value {
+            font-size: 2.2rem;
+            color: #e5c07b;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px rgba(229,192,123,0.15);
+        }
+
+        @media (max-width: 900px) {
+            table {
+                width: 98%;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 600px) {
+            table, th, td {
+                font-size: 0.95rem;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Your Curriculum Checklist (PDF)</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="file-upload" class="custom-file-upload">
+            Choose File
+        </label>
+        <input id="file-upload" type="file" name="file" accept=".pdf" required onchange="document.getElementById('file-chosen').textContent = this.files[0]?.name || 'No file chosen';">
+        <span id="file-chosen">No file chosen</span>
+        <input type="submit" value="Compute GWA">
+    </form>
+
+    {% if student_name or student_no %}
+    <div style="text-align:center; margin-top:24px; margin-bottom:8px;">
+        {% if student_name %}
+            <span style="font-size:1.15rem; color:#e5c07b;"><b>Name:</b> {{ student_name }}</span>
+        {% endif %}
+        {% if student_no %}
+            <span style="font-size:1.15rem; color:#e5c07b; margin-left:24px;"><b>Student No:</b> {{ student_no }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if courses %}
+        <h2>Parsed Courses (excluding PE & NSTP)</h2>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Units</th>
+                <th>Grade</th>
+                <th>Weighted Grade</th>
+            </tr>
+            {% for course in courses %}
+            <tr>
+                <td>{{loop.index}}</td>
+                <td>{{ course['Course Code'] }}</td>
+                <td>{{ course['Course Name'] }}</td>
+                <td>{{ course['Units'] }}</td>
+                <td>{{ course['Grade'] }}</td>
+                <td>{{ "%.2f"|format(course['Units'] * course['Grade']) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>GWA Calculation:</h3>
+        <p>Total Weighted Grade = {{ "%.2f"|format(total_weighted) }}</p>
+        <p>Total Units = {{ "%.2f"|format(total_units) }}</p>
+        <p><strong>GWA = Total Weighted Grade ÷ Total Units</strong></p>
+        <h2 class="gwa-value">Your GWA: {{ gwa }}</h2>
+        <form action="/download">
+            <button type="submit">Download PDF Report</button>
+            <p></p>
+        </form>
+    {% endif %}
+</body>
+</html>
