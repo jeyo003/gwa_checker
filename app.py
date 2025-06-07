@@ -1,9 +1,10 @@
-from flask import Flask, request, render_template, send_file, make_response
+from flask import Flask, request, render_template, send_file, make_response, session, redirect
 import os
 import pdfplumber
 import pandas as pd
 import re
 import io
+import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib import colors
@@ -13,6 +14,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.colors import HexColor
 
 app = Flask(__name__)
+app.secret_key = 'key_for_session_management'
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -116,6 +118,27 @@ def index():
     student_no = None
     error_message = None
 
+    # --- Session timeout logic: 5 minutes per user ---
+    now = datetime.datetime.utcnow()
+    if 'start_time' not in session:
+        session['start_time'] = now.isoformat()
+    else:
+        start_time = datetime.datetime.fromisoformat(session['start_time'])
+        if (now - start_time).total_seconds() > 300: # 5 minutes timeout
+            session.clear()  # Clear session if expired
+            session['start_time'] = now.isoformat()  # Reset start time
+            print("⏰ Session expired, user needs to refresh.")
+            # Show error message on refresh
+            error_message = "Your session has expired. Please refresh the page to start a new session."
+            return render_template('index.html',
+                                   gwa=None,
+                                   courses=[],
+                                   total_units=0,
+                                   total_weighted=0,
+                                   student_name=None,
+                                   student_no=None,
+                                   error_message=error_message)
+
     if request.method == 'POST':
         file = request.files['file']
         if not file.filename.endswith('.pdf'):
@@ -147,7 +170,8 @@ def index():
                            total_weighted=total_weighted,
                            student_name=student_name,
                            student_no=student_no,
-                           error_message=error_message)
+                           error_message=error_message,
+    )
 
 # Store latest student info for PDF download
 latest_student_name = None
@@ -187,6 +211,8 @@ def download_pdf():
         latin_honor = "Cum Laude"
     elif 1.00 <= gwa <= 1.75:
         latin_honor = "With Distinction"
+
+    print(f"📊 Computed Latin Honor for {latest_student_name or 'Unknown'}: {latin_honor}")
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
@@ -332,6 +358,11 @@ def download_pdf():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+@app.route('/reset')
+def reset():
+    session.clear()
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

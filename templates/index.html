@@ -4,7 +4,6 @@
     <title>GWA Calculator</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-
         body {
             background: linear-gradient(135deg, #232526 0%, #414345 100%);
             font-family: 'Montserrat', Arial, sans-serif;
@@ -13,25 +12,21 @@
             padding: 0;
             min-height: 100vh;
         }
-
         h1, h2, h3 {
             font-weight: 600;
             letter-spacing: 1px;
             color: #e5c07b;
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-
         h1 {
             margin-top: 40px;
             font-size: 2.5rem;
             text-align: center;
         }
-
         h2, h3 {
             margin-top: 30px;
             text-align: center;
         }
-
         form {
             display: flex;
             flex-direction: column;
@@ -39,13 +34,9 @@
             margin-top: 30px;
             gap: 16px;
         }
-
-        /* Hide the default file input */
         input[type="file"] {
             display: none;
         }
-
-        /* Custom file upload button */
         .custom-file-upload {
             display: inline-block;
             padding: 12px 28px;
@@ -61,14 +52,11 @@
             margin-bottom: 4px;
             letter-spacing: 1px;
         }
-
         .custom-file-upload:hover, .custom-file-upload:focus {
             background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
             color: #232526;
             border: 1.5px solid #bfa055;
         }
-
-        /* Show selected file name */
         #file-chosen {
             color: #e5c07b;
             font-size: 1rem;
@@ -77,7 +65,6 @@
             text-align: center;
             min-height: 1.2em;
         }
-
         input[type="submit"], button[type="submit"] {
             background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
             color: #232526;
@@ -90,12 +77,27 @@
             box-shadow: 0 4px 16px rgba(229,192,123,0.15);
             transition: background 0.2s, color 0.2s;
         }
-
         input[type="submit"]:hover, button[type="submit"]:hover {
             background: linear-gradient(90deg, #bfa055 0%, #e5c07b 100%);
             color: #232526;
         }
-
+        .start-session-btn {
+            background: linear-gradient(90deg, #232526 0%, #414345 100%);
+            color: #e5c07b;
+            border: 2px solid #e5c07b;
+            border-radius: 10px;
+            padding: 13px 36px;
+            font-size: 1.13rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(229,192,123,0.13), 0 1.5px 6px rgba(0,0,0,0.10);
+            transition: background 0.2s, color 0.2s, border 0.2s;
+        }
+        .start-session-btn:hover {
+            background: #e5c07b;
+            color: #232526;
+        }
         table {
             border-collapse: separate;
             border-spacing: 0;
@@ -106,39 +108,32 @@
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.25);
         }
-
         th, td {
             border-bottom: 1px solid #444;
             padding: 14px 10px;
             text-align: center;
         }
-
         th {
             background: linear-gradient(90deg, #e5c07b 0%, #bfa055 100%);
             color: #232526;
             font-size: 1.1rem;
             font-weight: 600;
         }
-
         tr:last-child td {
             border-bottom: none;
         }
-
         tr:nth-child(even) td {
             background: rgba(255,255,255,0.02);
         }
-
         tr:hover td {
             background: rgba(229,192,123,0.08);
             transition: background 0.2s;
         }
-
         p, strong {
             font-size: 1.1rem;
             color: #f5f5f7;
             text-align: center;
         }
-
         .gwa-value {
             font-size: 2.2rem;
             color: #e5c07b;
@@ -146,7 +141,6 @@
             letter-spacing: 2px;
             text-shadow: 0 2px 8px rgba(229,192,123,0.15);
         }
-
         .alert {
             margin: 24px auto;
             width: 80%;
@@ -158,22 +152,13 @@
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.10);
         }
-
         @media (max-width: 900px) {
-            table {
-                width: 98%;
-            }
-            h1 {
-                font-size: 2rem;
-            }
+            table { width: 98%; }
+            h1 { font-size: 2rem; }
         }
         @media (max-width: 600px) {
-            table, th, td {
-                font-size: 0.95rem;
-            }
-            h1 {
-                font-size: 1.3rem;
-            }
+            table, th, td { font-size: 0.95rem; }
+            h1 { font-size: 1.3rem; }
         }
     </style>
 </head>
@@ -190,6 +175,23 @@
 
     {% if error_message %}
         <div class="alert">{{ error_message }}</div>
+        <form action="/reset" method="get" style="text-align:center; margin-top:18px;">
+            <button type="submit" style="
+                background: linear-gradient(90deg, #232526 0%, #414345 100%);
+                color: #e5c07b;
+                border: 2px solid #e5c07b;
+                border-radius: 10px;
+                padding: 13px 36px;
+                font-size: 1.13rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                cursor: pointer;
+                box-shadow: 0 6px 24px rgba(229,192,123,0.13), 0 1.5px 6px rgba(0,0,0,0.10);
+                transition: background 0.2s, color 0.2s, border 0.2s;
+            " onmouseover="this.style.background='#e5c07b';this.style.color='#232526';" onmouseout="this.style.background='linear-gradient(90deg, #232526 0%, #414345 100%)';this.style.color='#e5c07b';">
+                Start New Session
+            </button>
+        </form>
     {% endif %}
 
     {% if student_name or student_no %}
