@@ -114,23 +114,31 @@ def index():
     total_weighted = 0
     student_name = None
     student_no = None
+    error_message = None
 
     if request.method == 'POST':
         file = request.files['file']
-        if file.filename.endswith('.pdf'):
-            df, student_name, student_no = extract_courses_from_pdf(file.stream)
+        if not file.filename.endswith('.pdf'):
+            error_message = "Invalid file type. Please upload a PDF file."
+        else:
+            try:
+                df, student_name, student_no = extract_courses_from_pdf(file.stream)
+                if df.empty:
+                    error_message = "No valid course data found in the PDF. Please upload a valid transcript."
+                else:
+                    df_filtered = df[~df['Course Code'].str.startswith(('PE', 'NSTP', 'STEM'))]
+                    parsed_courses = df_filtered.to_dict(orient='records')
 
-            df_filtered = df[~df['Course Code'].str.startswith(('PE', 'NSTP', 'STEM'))]
-            parsed_courses = df_filtered.to_dict(orient='records')
+                    total_units = df_filtered['Units'].sum()
+                    total_weighted = (df_filtered['Units'] * df_filtered['Grade']).sum()
+                    gwa_result = round(total_weighted / total_units, 4) if total_units > 0 else "No valid data"
 
-            total_units = df_filtered['Units'].sum()
-            total_weighted = (df_filtered['Units'] * df_filtered['Grade']).sum()
-            gwa_result = round(total_weighted / total_units, 4) if total_units > 0 else "No valid data"
-
-            global latest_df, latest_student_name, latest_student_no
-            latest_df = df_filtered.copy()
-            latest_student_name = student_name
-            latest_student_no = student_no
+                    global latest_df, latest_student_name, latest_student_no
+                    latest_df = df_filtered.copy()
+                    latest_student_name = student_name
+                    latest_student_no = student_no
+            except Exception as e:
+                error_message = "Failed to process the PDF. Please make sure you uploaded a valid transcript PDF file."
 
     return render_template('index.html',
                            gwa=gwa_result,
@@ -138,7 +146,8 @@ def index():
                            total_units=total_units,
                            total_weighted=total_weighted,
                            student_name=student_name,
-                           student_no=student_no)
+                           student_no=student_no,
+                           error_message=error_message)
 
 # Store latest student info for PDF download
 latest_student_name = None

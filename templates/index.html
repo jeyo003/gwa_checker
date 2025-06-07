@@ -147,6 +147,18 @@
             text-shadow: 0 2px 8px rgba(229,192,123,0.15);
         }
 
+        .alert {
+            margin: 24px auto;
+            width: 80%;
+            padding: 16px;
+            border-radius: 8px;
+            background: #ff4d4f;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+
         @media (max-width: 900px) {
             table {
                 width: 98%;
@@ -175,6 +187,10 @@
         <span id="file-chosen">No file chosen</span>
         <input type="submit" value="Compute GWA">
     </form>
+
+    {% if error_message %}
+        <div class="alert">{{ error_message }}</div>
+    {% endif %}
 
     {% if student_name or student_no %}
     <div style="text-align:center; margin-top:24px; margin-bottom:8px;">
