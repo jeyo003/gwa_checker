@@ -73,7 +73,7 @@ def extract_courses_from_pdf(pdf_file):
                             units = float(token)
                             # Find the index of the units in the original tokens list
                             units_idx = len(tokens) - 1 - i
-                            print(f"Extracted units: {units} from token: {token} for line: {tokens}")
+                            # print(f"Extracted units: {units} from token: {token} for line: {tokens}")
                             break
                     if units is None:
                         units = 6.0 if course_code == 'IT 402' else 3.0
@@ -137,7 +137,8 @@ def index():
                                    total_weighted=0,
                                    student_name=None,
                                    student_no=None,
-                                   error_message=error_message)
+                                   error_message=error_message,
+            )
 
     if request.method == 'POST':
         file = request.files['file']
@@ -156,10 +157,10 @@ def index():
                     total_weighted = (df_filtered['Units'] * df_filtered['Grade']).sum()
                     gwa_result = round(total_weighted / total_units, 4) if total_units > 0 else "No valid data"
 
-                    global latest_df, latest_student_name, latest_student_no
-                    latest_df = df_filtered.copy()
-                    latest_student_name = student_name
-                    latest_student_no = student_no
+                    # Store user data in session (serialize DataFrame as JSON)
+                    session['latest_df'] = df_filtered.to_json()
+                    session['latest_student_name'] = student_name
+                    session['latest_student_no'] = student_no
             except Exception as e:
                 error_message = "Failed to process the PDF. Please make sure you uploaded a valid transcript PDF file."
 
@@ -179,38 +180,41 @@ latest_student_no = None
 
 @app.route('/download')
 def download_pdf():
-    global latest_df, latest_student_name, latest_student_no
-    if latest_df is None or latest_df.empty:
+    if 'latest_df' not in session or not session['latest_df']:
         return "No data available to download.", 400
 
-    df = latest_df.copy()
-    #For dummy testing
-    #df = pd.concat([
-    #    df,
-    #    pd.DataFrame([{
-    #        'Course Code': 'DUMMY 101',
-    #        'Course Name': 'Dummy Course',
-    #        'Units': 3,
-    #        'Grade': 2.75
-    #    }])
-    #], ignore_index=True)
+    df = pd.read_json(session['latest_df'])
+
+    # Ensure columns exist and are correct type
+    for col in ['Course Code', 'Course Name', 'Units', 'Grade']:
+        if col not in df.columns:
+            df[col] = None
+
+    df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+    df['Grade'] = pd.to_numeric(df['Grade'], errors='coerce')
+
+    latest_student_name = session.get('latest_student_name')
+    latest_student_no = session.get('latest_student_no')
+
     df['Weighted Grade'] = df['Units'] * df['Grade']
 
     total_units = df['Units'].sum()
     total_weighted = df['Weighted Grade'].sum()
     gwa = round(total_weighted / total_units, 4)
 
-    # --- Latin honor logic (corrected) ---
+    # --- Latin honor logic ---
     latin_honor = "No Latin Honor"
-
-    if 1.00 <= gwa <= 1.25 and (df['Grade'] <= 1.50).all():
-        latin_honor = "Summa Cum Laude"
-    elif 1.00 <= gwa <= 1.50 and (df['Grade'] <= 2.00).all():
-        latin_honor = "Magna Cum Laude"
-    elif 1.00 <= gwa <= 1.75 and (df['Grade'] <= 2.50).all():
-        latin_honor = "Cum Laude"
-    elif 1.00 <= gwa <= 1.75:
-        latin_honor = "With Distinction"
+    if ((df['Grade'] == 4.00) | (df['Grade'] == 5.00)).any():
+        latin_honor = "No Latin Honor"
+    else:
+        if 1.00 <= gwa <= 1.25 and (df['Grade'] <= 1.50).all():
+            latin_honor = "Summa Cum Laude"
+        elif 1.00 <= gwa <= 1.50 and (df['Grade'] <= 2.00).all():
+            latin_honor = "Magna Cum Laude"
+        elif 1.00 <= gwa <= 1.75 and (df['Grade'] <= 2.50).all():
+            latin_honor = "Cum Laude"
+        elif 1.00 <= gwa <= 1.75:
+            latin_honor = "With Distinction"
 
     print(f"📊 Computed Latin Honor for {latest_student_name or 'Unknown'}: {latin_honor}")
 
